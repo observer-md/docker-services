@@ -1,6 +1,5 @@
 # Docker Web Services
 ## Reverse Proxy
-In folder "reverse-proxy" you can find example of Docker - Reverse Proxy implementation
 
 ### Set Local Hosts
 > In Linux hosts file located in "/etc/hosts"<br/>
