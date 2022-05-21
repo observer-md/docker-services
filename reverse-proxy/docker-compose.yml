@@ -1,0 +1,46 @@
+# ##########################################################################
+# DOCKER COMPOSE : NGINX REVERSE PROXY WITH MULTIPLE CONTAINERS
+# https://www.bogotobogo.com/DevOps/Docker/Docker-Compose-Nginx-Reverse-Proxy-Multiple-Containers.php
+# https://wiki.alpinelinux.org/wiki/Nginx_as_reverse_proxy_with_acme_(letsencrypt)
+# ##########################################################################
+version: '3.9'
+services:
+    # ##########################################################################
+    # Proxy Server which handles server ONE & TWO
+    #
+    # Set HOSTS
+    # 127.0.0.1 webone.myproxy.test webtwo.myproxy.test
+    # Configure Proxy
+    # ./config/proxy-nginx.conf
+    #
+    # http://webone.myproxy.test/
+    # http://webtwo.myproxy.test/
+    # ##########################################################################
+    proxy:
+        image: nginx:alpine
+        ports:
+            - 80:80
+        volumes:
+            - ./config/proxy-nginx.conf:/etc/nginx/nginx.conf
+        depends_on:
+            - webone
+            - webtwo
+
+
+    # ##########################################################################
+    # Web Server ONE (can be any services)
+    # http://webone.myproxy.test/
+    # ##########################################################################
+    webone:
+        image: nginx:alpine
+        volumes:
+            - ./www/webone:/usr/share/nginx/html
+
+    # ##########################################################################
+    # Web Server TWO (can be any services)
+    # http://webtwo.myproxy.test/
+    # ##########################################################################
+    webtwo:
+        image: nginx:alpine
+        volumes:
+            - ./www/webtwo:/usr/share/nginx/html
