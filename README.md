@@ -1,23 +1,24 @@
 # Docker Web Services
 
 
-## 1) Reverse Proxy
+## 1. Reverse Proxy
 In folder "reverse-proxy" you can find example of Docker - Reverse Proxy implementation
 
-#### Set HOSTS
+### Set Local Hosts
+> In Linux hosts file located in "/etc/hosts"<br/>
+> In Windows hosts file located in "C:\Windows\System32\drivers\etc\hosts"<br/>
 ```
 127.0.0.1 webone.myproxy.test webtwo.myproxy.test
 ```
 
-#### Proxy Configuration
+### Proxy Configuration
 All proxy server configuration you can find in file below.
+You can add/edit other containers into proxy config file.
 ```
 ./config/proxy-nginx.conf
 ```
 
-You can add/edit other containers into proxy config file.
-
-Add upstream to "webone" container
+- **Add upstream to "webone" container**
 ```
 # Create upstream to "webone" container
 upstream docker-webone {
@@ -25,7 +26,7 @@ upstream docker-webone {
 }
 ```
 
-Add Virtual Host configuration
+- **Add Virtual Host configuration**
 ```
 # Create VirtualHost for "webone.myproxy.test"
 server {
