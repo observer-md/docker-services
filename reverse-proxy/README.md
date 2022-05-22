@@ -36,3 +36,14 @@ server {
     }
 }
 ```
+
+- **Run docker containers**
+```
+$ docker-compose up -d proxy
+```
+
+- **Now URLs should be available**
+```
+http://webone.myproxy.test/
+http://webtwo.myproxy.test/
+```
