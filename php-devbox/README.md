@@ -1,5 +1,5 @@
 # PHP Dev Box
-Docker folder structure to run PHP evelopment environment with necesary tools like Redis, Mailhog, MySQL and ...
+Docker folder structure to run PHP development environment with necesary tools like Redis, Mailhog, MySQL and ...
 
 Current "./build/apache-php/Dockerfile.Debian" build file support Apache + PHP + Composer + NodeJS + MySQL.
 And can enable [SQL Server + Oracle].
