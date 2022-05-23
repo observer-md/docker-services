@@ -1,0 +1,147 @@
+################################################################################
+# Debian GNU/Linux 11
+#
+# Apache + PHP + Composer + NodeJS + MySQL + SQL Server + Oracle
+#
+# Build IMAGE
+# $ docker build -t apache-php80-debian .
+# $ docker build -t apache-php80-debian -f Dockerfile.Debian .
+# $ docker build -t apache-php81-debian -f Dockerfile.Debian .
+################################################################################
+FROM php:8.0-apache
+# FROM php:8.1-apache
+
+# Set TimeZone
+RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+
+
+################################################################################
+# Install PACKs
+################################################################################
+RUN apt-get update && apt-get install -qqy \
+    build-essential libtool autoconf vim wget git unzip \
+    # add ping/telnet/whereis
+    iputils-ping telnet util-linux \
+    # sendmail \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    libzip-dev \
+    libaio1  \
+    gnupg2 unixodbc-dev unixodbc libcurl4 openssl libssl-dev \
+    && apt-get clean autoclean && apt-get autoremove --yes \
+    && rm -rf /var/lib/{apt,dpkg,cache,log}/
+
+# Install Beanstalk
+# Beanstalk is a simple, fast work queue
+# https://beanstalkd.github.io/
+RUN apt-get install -qqy beanstalkd && echo ' START=yes ' >> /etc/default/beanstalkd
+
+
+# PHP Composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+
+
+# Add PHP extentions
+RUN docker-php-ext-install gd \
+    && docker-php-ext-install zip \
+    # Add support for HL7
+    && docker-php-ext-install sockets \
+    # MySQL
+    && docker-php-ext-install pdo_mysql \
+    # PHP Install xDebug
+    && pecl install xdebug && docker-php-ext-enable xdebug
+
+
+# ################################################################################
+# # ORACLE OCI Support
+# ################################################################################
+# RUN mkdir /opt/oracle && cd /opt/oracle
+# ADD https://download.oracle.com/otn_software/linux/instantclient/199000/instantclient-basic-linux.x64-19.9.0.0.0dbru.zip /opt/oracle
+# ADD https://download.oracle.com/otn_software/linux/instantclient/199000/instantclient-sdk-linux.x64-19.9.0.0.0dbru.zip /opt/oracle
+# # Install Oracle Instantclient
+# RUN  unzip /opt/oracle/instantclient-basic-linux.x64-19.9.0.0.0dbru.zip -d /opt/oracle \
+#     && unzip /opt/oracle/instantclient-sdk-linux.x64-19.9.0.0.0dbru.zip -d /opt/oracle \
+#     && ln -s /opt/oracle/instantclient_19_9/libclntshcore.so.19.9 /opt/oracle/instantclient_19_9/libclntshcore.so \
+#     && rm -rf /opt/oracle/*.zip
+# ENV LD_LIBRARY_PATH  /opt/oracle/instantclient_19_9:${LD_LIBRARY_PATH}
+# # Install Oracle extensions
+# # PHP-8.0/PHP-8.1
+# # RUN echo 'instantclient,/opt/oracle/instantclient_19_9/' | pecl install oci8-3.0.1 \
+# # PHP-8.1/check if PHP-8.0 supports
+# RUN echo 'instantclient,/opt/oracle/instantclient_19_9/' | pecl install oci8 \
+#     && docker-php-ext-enable oci8 \
+#     && docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,/opt/oracle/instantclient_19_9,19.9 \
+#     && docker-php-ext-install pdo_oci
+
+
+# ################################################################################
+# # MS SQL support
+# ################################################################################
+# RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+#     && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+#     && apt-get update \
+#     # && apt-get install -qqy --no-install-recommends locales apt-transport-https \
+#     # && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen \
+#     && ACCEPT_EULA=Y apt-get install -y msodbcsql17
+# # PHP Install MSSQL
+# # 5.9.0 do not support PHP 8.1
+# # RUN pecl install sqlsrv-5.9.0 pdo_sqlsrv-5.9.0 && docker-php-ext-enable sqlsrv pdo_sqlsrv
+# RUN pecl install sqlsrv pdo_sqlsrv && docker-php-ext-enable sqlsrv pdo_sqlsrv
+
+
+# ################################################################################
+# # DB: IBM DB2 Support (Not PDO)
+# ################################################################################
+# RUN mkdir /opt/ibm
+# # # COPY ./config/ibm/linuxx64_odbc_cli.tar.gz /opt/ibm/
+# COPY ./resources/ibm_data_server_driver_package_linuxx64_v11.5.tar.gz /opt/ibm/
+# WORKDIR "/opt/ibm"
+# RUN tar xzf ibm_data_server_driver_package_linuxx64_v11.5.tar.gz -C /opt/ibm
+# WORKDIR "/opt/ibm/dsdriver"
+# RUN chmod 755 installDSDriver
+# RUN bash installDSDriver
+# RUN export IBM_DB_HOME=/opt/ibm/dsdriver && env IBM_DB_HOME=/opt/ibm/dsdriver \
+#     && pecl install ibm_db2 && docker-php-ext-enable ibm_db2
+#     # && echo "extension=ibm_db2.so" >> /etc/php.d/ibm_db2.ini
+#
+# # export LD_LIBRARY_PATH=/opt/ibm/dsdriver/lib
+# # COPY docker/php/php.ini /usr/local/etc/php/
+
+
+################################################################################
+# MailHog : Connecting PHP’s email with MailHog through mhsendmail
+################################################################################
+# RUN wget https://github.com/mailhog/mhsendmail/releases/download/v0.2.0/mhsendmail_linux_amd64 \
+#     && chmod +x mhsendmail_linux_amd64 \
+#     && mv mhsendmail_linux_amd64 /usr/local/bin/mhsendmail
+# # Copy PHP settings
+# # sendmail_path = "/usr/local/bin/mhsendmail --smtp-addr=mailhog:1025"
+# COPY ./config/php-set-params.ini /usr/local/etc/php/conf.d/php-set-params.ini
+
+
+################################################################################
+# INSTALL NODEJS
+# https://github.com/nodesource/distributions/blob/master/README.md
+################################################################################
+# Install specific version
+# RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && apt-get install -y nodejs
+# Install current version
+# RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && apt-get install -y nodejs
+# Install LTS version
+RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && apt-get install -y nodejs
+
+
+################################################################################
+# Apache Config
+################################################################################
+# COPY ./config/apache.conf /etc/apache2/sites-enabled/000-default.conf
+
+
+# Apache Enable MODS
+RUN a2enmod rewrite \
+    && a2enmod ssl \
+    && a2enmod headers
+
+
+WORKDIR "/var/www/html"
