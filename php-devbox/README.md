@@ -1,5 +1,6 @@
 # PHP Dev Box
-Docker folder structure to run PHP development environment with necesary tools like Redis, Mailhog, MySQL and ...
+Docker folder structure to run PHP development environment with necesary tools like Redis, Mailhog, MySQL and etc.
+This environment uses reverse proxy instace to handle local domains and redirect requests to specific containers.
 
 Current "./build/apache-php/Dockerfile.Debian" build file support Apache + PHP + Composer + NodeJS + MySQL.
 And can enable [SQL Server + Oracle].
@@ -7,14 +8,14 @@ And can enable [SQL Server + Oracle].
 PHP or PHP-Laravel projects can stay in folders ```web-project-one```, ```web-project-one```. Or you can create new projects and set new service inside ```docker-compose.yml``` file.
 
 
-## Configure new WEB container
+## Configure new WEB container and Proxy
 
 ### Create new project folder
 ```
 web-project-new-name
 ```
 
-### Set new-name service inside ```docker-compose.yml``` file
+### Set new-name service inside ```docker-compose.yml``` file and choose image type
 ```
 # ****************************************************************************
 # Web One
