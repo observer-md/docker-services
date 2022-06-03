@@ -27,6 +27,7 @@ RUN apt-get update && apt-get install -qqy \
     libjpeg62-turbo-dev \
     libpng-dev \
     libzip-dev \
+    libxml2-dev \
     libaio1  \
     gnupg2 unixodbc-dev unixodbc libcurl4 openssl libssl-dev \
     && apt-get clean autoclean && apt-get autoremove --yes \
@@ -45,6 +46,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 # Add PHP extentions
 RUN docker-php-ext-install gd \
     && docker-php-ext-install zip \
+    && docker-php-ext-install soap \
     # Add support for HL7
     && docker-php-ext-install sockets \
     # MySQL
