@@ -19,10 +19,10 @@ web-project-new-name
 ### Set new-name service inside ```docker-compose.yml``` file and choose image type
 ```
 # ****************************************************************************
-# Web One
+# New Web Service
 # ****************************************************************************
-web.service.new-name:
-    container_name: web.service.new-name
+new-name.service.web;
+    container_name: new-name.service.web
     # -------------------------------------------------------
     # Standard PHP image
     # image: php:8.0-apache
@@ -77,7 +77,13 @@ image: <full-repository-name>:apache-php80-debian
 
 ### Set hosts
 ```
-127.0.0.1 webone.myproxy.test webtwo.myproxy.test
+# You can use any domain name...
+# 127.0.0.1 webone.myproxy.test webtwo.myproxy.test
+
+# BUT If container name will be the same as domain name "webone.service.web"
+# than same domain will be available outside/inside of the container,
+# because domains from outside "hosts" are not available inside of a container!!!
+127.0.0.1 webone.service.web webtwo.service.web
 ```
 
 ### Set proxy to handle hosts above
@@ -86,21 +92,22 @@ Set new proxy host into ```./config/proxy/nginx.conf``` config file.
 
 #### Set upstream
 ```
-# create upstream for "new-name" container
-upstream docker.web.service.new-name {
-    server web.service.new-name:80;
+# Create upstream for "new-name.service.web" container
+upstream docker.new-name.service.web {
+    server new-name.service.web:80;
 }
 ```
 
 #### Set server host
 ```
-# create proxy vhost for "new-name.service.one" container
+# Create proxy vhost for "new-name.service.web" container
+# and make it available for "http://new-name.service.web" domain set above.
 server {
     listen 80;
-    server_name  new-name.myproxy.test;
+    server_name  new-name.service.web;
 
     location / {
-        proxy_pass         http://docker.web.service.new-name;
+        proxy_pass         http://docker.new-name.service.web;
         proxy_redirect     off;
     }
 }

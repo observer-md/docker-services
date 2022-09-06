@@ -4,11 +4,11 @@ services:
     # **************************************************************************
     # Proxy
     #
-    # http://webone.myproxy.test/
-    # http://webtwo.myproxy.test/
+    # http://one.service.web/
+    # http://two.service.web/
     # **************************************************************************
-    web.proxy:
-        container_name: web.proxy
+    proxy.service.web:
+        container_name: proxy.service.web
         image: nginx:alpine
         ports:
             - 80:80
@@ -16,14 +16,14 @@ services:
             - ./config/proxy/nginx.conf:/etc/nginx/nginx.conf
         # To start all projects at once add this section
         # depends_on:
-        #     - web.service.one
-        #     - web.service.two
+        #     - one.service.web
+        #     - two.service.web
     
     # **************************************************************************
     # Web One
     # **************************************************************************
-    web.service.one:
-        container_name: web.service.one
+    one.service.web:
+        container_name: one.service.web
         # -------------------------------------------------------
         # Standard PHP image
         # image: php:8.0-apache
@@ -48,8 +48,8 @@ services:
     # **************************************************************************
     # Web Two
     # **************************************************************************
-    # web.service.two:
-    #     container_name: web.service.two
+    # two.service.web:
+    #     container_name: two.service.web
     #     # -------------------------------------------------------
     #     # Standard PHP image
     #     # image: php:8.0-apache
@@ -74,8 +74,8 @@ services:
     # **************************************************************************
     # Redis
     # **************************************************************************
-    # redis:
-    #     container_name: redis
+    # redis.service.web:
+    #     container_name: redis.service.web
     #     image: redis:6-alpine
     #     ports:
     #         - 6379:6379
@@ -83,8 +83,8 @@ services:
     # **************************************************************************
     # MailHog. Test email service.
     # **************************************************************************
-    # mailhog:
-    #     container_name: mailhog
+    # mailhog.service.web:
+    #     container_name: mailhog.service.web
     #     image: mailhog/mailhog:latest
     #     ports:
     #         - 1025:1025
