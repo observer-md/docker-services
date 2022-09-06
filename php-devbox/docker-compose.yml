@@ -7,8 +7,8 @@ services:
     # http://one.service.web/
     # http://two.service.web/
     # **************************************************************************
-    web.proxy:
-        container_name: web.proxy
+    proxy.service.web:
+        container_name: proxy.service.web
         image: nginx:alpine
         ports:
             - 80:80
