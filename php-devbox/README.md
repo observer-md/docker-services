@@ -101,6 +101,7 @@ upstream docker.new-name.service.web {
 #### Set server host
 ```
 # Create proxy vhost for "new-name.service.web" container
+# and make it available for "http://new-name.service.web" domain set above.
 server {
     listen 80;
     server_name  new-name.service.web;
