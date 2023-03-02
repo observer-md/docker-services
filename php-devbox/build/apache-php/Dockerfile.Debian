@@ -5,9 +5,11 @@
 #
 # Build IMAGE
 # $ docker build -t apache-php80-debian .
+# $ docker build -t apache-php74-debian -f Dockerfile.Debian .
 # $ docker build -t apache-php80-debian -f Dockerfile.Debian .
 # $ docker build -t apache-php81-debian -f Dockerfile.Debian .
 ################################################################################
+# FROM php:7.4-apache
 FROM php:8.0-apache
 # FROM php:8.1-apache
 
@@ -18,25 +20,37 @@ RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 ################################################################################
 # Install PACKs
 ################################################################################
-RUN apt-get update && apt-get install -qqy \
-    build-essential libtool autoconf vim wget git unzip \
-    # add ping/telnet/whereis
-    iputils-ping telnet util-linux \
+# RUN apt-get update && apt-get install -qqy \
+RUN apt-get update && apt-get install -y \
+    # python3 python3-pip \
+    build-essential libtool autoconf vim wget git zip unzip \
+    # add ping/telnet/whereis/htop
+    iputils-ping telnet util-linux htop \
     # sendmail \
     libfreetype6-dev \
     libjpeg62-turbo-dev \
     libpng-dev \
     libzip-dev \
     libxml2-dev \
-    libaio1  \
-    gnupg2 unixodbc-dev unixodbc libcurl4 openssl libssl-dev \
+    libaio1 \
+    # gnupg2 unixodbc-dev unixodbc libcurl4 openssl libssl-dev libldap2-dev \
+    gnupg2 unixodbc-dev unixodbc openssl libssl-dev libldap2-dev \
     && apt-get clean autoclean && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
+# Update Python PIP
+# RUN python3 -m pip install --upgrade pip
+
+# **************************************************************************
 # Install Beanstalk
 # Beanstalk is a simple, fast work queue
 # https://beanstalkd.github.io/
-RUN apt-get install -qqy beanstalkd && echo ' START=yes ' >> /etc/default/beanstalkd
+#
+# Lightweight image of the latest beanstalkd version
+# https://hub.docker.com/r/schickling/beanstalkd
+# https://hub.docker.com/r/schickling/beanstalkd-console
+# **************************************************************************
+# RUN apt-get install -qqy beanstalkd && echo ' START=yes ' >> /etc/default/beanstalkd
 
 
 # PHP Composer
@@ -52,6 +66,12 @@ RUN docker-php-ext-install gd \
     # MySQL
     && docker-php-ext-install pdo_mysql \
     # PHP Install xDebug
+    # https://pecl.php.net/package/xdebug
+    # PHP5.6
+    # && pecl install xdebug-2.5.5 && docker-php-ext-enable xdebug
+    # PHP7
+    # && pecl install xdebug-2.8.0 && docker-php-ext-enable xdebug
+    # PHP8
     && pecl install xdebug && docker-php-ext-enable xdebug
 
 
@@ -86,6 +106,7 @@ RUN docker-php-ext-install gd \
 #     # && apt-get install -qqy --no-install-recommends locales apt-transport-https \
 #     # && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen \
 #     && ACCEPT_EULA=Y apt-get install -y msodbcsql17
+#     # && ACCEPT_EULA=Y apt-get install -y msodbcsql18
 # # PHP Install MSSQL
 # # 5.9.0 do not support PHP 8.1
 # # RUN pecl install sqlsrv-5.9.0 pdo_sqlsrv-5.9.0 && docker-php-ext-enable sqlsrv pdo_sqlsrv
