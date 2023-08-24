@@ -9,10 +9,19 @@
 # $ docker build -t apache-php80-debian -f Dockerfile.Debian .
 # $ docker build -t apache-php81-debian -f Dockerfile.Debian .
 ################################################################################
+
+
+################################################################################
+# PHP
+# !LATEST VERSION OF PHP CAN CAUSE DB ISSUE (OR OTHER LIBRARIES ISSUE)!
+# !IF YOU HAVE SOME ISSUES TRY PREVIOUS VERSION!
+################################################################################
 # FROM php:7.4-apache
 # FROM php:8.0-apache
 # FROM php:8.1-apache
+# FROM php:8.1.21-apache
 FROM php:8.2-apache
+# FROM php:8.2.8-apache
 
 # Set TimeZone
 RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
@@ -23,7 +32,7 @@ RUN ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
 ################################################################################
 # RUN apt-get update && apt-get install -qqy \
 RUN apt-get update && apt-get install -y \
-    # python3 python3-pip \
+    python3 python3-pip \
     build-essential libtool autoconf vim wget git zip unzip rsync \
     # add ping/telnet/whereis/htop
     iputils-ping telnet util-linux htop \
@@ -34,13 +43,13 @@ RUN apt-get update && apt-get install -y \
     libzip-dev \
     libxml2-dev \
     libaio1 \
-    # gnupg2 unixodbc-dev unixodbc libcurl4 openssl libssl-dev libldap2-dev \
-    gnupg2 unixodbc-dev unixodbc openssl libssl-dev libldap2-dev \
+    gnupg2 unixodbc-dev unixodbc libcurl4 openssl libssl-dev libldap2-dev \
     && apt-get clean autoclean && apt-get autoremove --yes \
     && rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 # Update Python PIP
 # RUN python3 -m pip install --upgrade pip
+
 
 # **************************************************************************
 # Install Beanstalk
@@ -57,15 +66,21 @@ RUN apt-get update && apt-get install -y \
 # PHP Composer
 RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
-
-# Add PHP extentions
+# PHP extentions
+# required for excel handling
 RUN docker-php-ext-install gd \
+    # ZIP
     && docker-php-ext-install zip \
+    # SOAP
     && docker-php-ext-install soap \
     # Add support for HL7
     && docker-php-ext-install sockets \
+    # REDIS
+    && pecl install redis && docker-php-ext-enable redis \
     # MySQL
     && docker-php-ext-install pdo_mysql \
+    # LDAP
+    && docker-php-ext-install ldap \
     # PHP Install xDebug
     # https://pecl.php.net/package/xdebug
     # PHP5.6
@@ -77,7 +92,8 @@ RUN docker-php-ext-install gd \
 
 
 # ################################################################################
-# # ORACLE OCI Support
+# # [DB] ORACLE OCI Support
+# # https://pecl.php.net/package/oci8
 # ################################################################################
 # RUN mkdir /opt/oracle && cd /opt/oracle
 # ADD https://download.oracle.com/otn_software/linux/instantclient/199000/instantclient-basic-linux.x64-19.9.0.0.0dbru.zip /opt/oracle
@@ -89,33 +105,40 @@ RUN docker-php-ext-install gd \
 #     && rm -rf /opt/oracle/*.zip
 # ENV LD_LIBRARY_PATH  /opt/oracle/instantclient_19_9:${LD_LIBRARY_PATH}
 # # Install Oracle extensions
-# # PHP-8.0/PHP-8.1
+# # PHP-8.0
 # # RUN echo 'instantclient,/opt/oracle/instantclient_19_9/' | pecl install oci8-3.0.1 \
-# # PHP-8.1/check if PHP-8.0 supports
-# RUN echo 'instantclient,/opt/oracle/instantclient_19_9/' | pecl install oci8 \
+# # PHP-8.1
+# RUN echo 'instantclient,/opt/oracle/instantclient_19_9/' | pecl install oci8-3.2.1 \
+# # PHP-8.2
+# # RUN echo 'instantclient,/opt/oracle/instantclient_19_9/' | pecl install oci8 \
 #     && docker-php-ext-enable oci8 \
 #     && docker-php-ext-configure pdo_oci --with-pdo-oci=instantclient,/opt/oracle/instantclient_19_9,19.9 \
 #     && docker-php-ext-install pdo_oci
 
 
 # ################################################################################
-# # MS SQL support
+# # [DB] MSSQL support
+# # https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server
 # ################################################################################
 # RUN curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-#     && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+#     #Debian 10
+#     # && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+#     #Debian 11
+#     && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
 #     && apt-get update \
 #     # && apt-get install -qqy --no-install-recommends locales apt-transport-https \
 #     # && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen && locale-gen \
 #     && ACCEPT_EULA=Y apt-get install -y msodbcsql17
 #     # && ACCEPT_EULA=Y apt-get install -y msodbcsql18
 # # PHP Install MSSQL
-# # 5.9.0 do not support PHP 8.1
-# # RUN pecl install sqlsrv-5.9.0 pdo_sqlsrv-5.9.0 && docker-php-ext-enable sqlsrv pdo_sqlsrv
 # RUN pecl install sqlsrv pdo_sqlsrv && docker-php-ext-enable sqlsrv pdo_sqlsrv
+# # RUN pecl install sqlsrv-5.9.0 pdo_sqlsrv-5.9.0 && docker-php-ext-enable sqlsrv pdo_sqlsrv
+# # 5.9.0 do not support PHP 8.1
+# # RUN pecl install sqlsrv-5.10.0beta2 pdo_sqlsrv-5.10.0beta2 && docker-php-ext-enable sqlsrv pdo_sqlsrv
 
 
 # ################################################################################
-# # DB: IBM DB2 Support (Not PDO)
+# # [DB] IBM DB2 Support (Not PDO)
 # ################################################################################
 # RUN mkdir /opt/ibm
 # # # COPY ./config/ibm/linuxx64_odbc_cli.tar.gz /opt/ibm/
@@ -128,9 +151,9 @@ RUN docker-php-ext-install gd \
 # RUN export IBM_DB_HOME=/opt/ibm/dsdriver && env IBM_DB_HOME=/opt/ibm/dsdriver \
 #     && pecl install ibm_db2 && docker-php-ext-enable ibm_db2
 #     # && echo "extension=ibm_db2.so" >> /etc/php.d/ibm_db2.ini
-#
+
 # # export LD_LIBRARY_PATH=/opt/ibm/dsdriver/lib
-# # COPY docker/php/php.ini /usr/local/etc/php/
+# #COPY docker/php/php.ini /usr/local/etc/php/
 
 
 ################################################################################
@@ -154,6 +177,7 @@ RUN docker-php-ext-install gd \
 # RUN curl -fsSL https://deb.nodesource.com/setup_current.x | bash - && apt-get install -y nodejs
 # Install LTS version
 RUN curl -fsSL https://deb.nodesource.com/setup_lts.x | bash - && apt-get install -y nodejs
+RUN npm install -g npm@latest
 
 
 ################################################################################
