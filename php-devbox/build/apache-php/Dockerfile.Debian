@@ -190,8 +190,11 @@ RUN export IBM_DB_HOME=/opt/ibm/dsdriver && env IBM_DB_HOME=/opt/ibm/dsdriver \
 # INSTALL NODEJS
 # https://github.com/nodesource/distributions/blob/master/README.md
 #
+# !SOME VERSION OF NODEJS CAN CAUSE ISSUES (like "Segmentation fault")!
+# !IF YOU HAVE ISSUES TRY DIFFERENT VERSION!
+#
 # node -v
-#   v20.12.0 BAD ("npm run dev" - Segmentation fault)
+#   - v20.12.0  BAD ("npm run dev" - Segmentation fault)
 ################################################################################
 # RUN curl -fsSL https://deb.nodesource.com/setup_16.x | bash - && apt-get install -y nodejs
 # RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && apt-get install -y nodejs
